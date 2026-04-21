@@ -104,13 +104,13 @@ export const dashboardCopy = {
     fallbackBusinessName: "Unconfigured merchant",
   },
   overview: {
-    eyebrow: "Day 1 foundation",
-    title: "Dashboard shell is protected and ready for data.",
+    eyebrow: "Merchant performance",
+    title: "Revenue, links, and conversion in one place.",
     description:
-      "Authentication, SSR session hydration, and the dashboard frame are in place. The next iteration can add link creation and analytics features on top of this authenticated shell.",
-    nextStepTitle: "Next build target",
+      "Track completed payments, monitor link performance, and understand how views convert into paid checkouts.",
+    nextStepTitle: "Performance snapshot",
     nextStepDescription:
-      "Day 2 will add payment link creation, slug generation, and the initial database-backed CRUD flow.",
+      "Metrics update from live payment, view, and link records synced from Supabase and Stripe webhooks.",
   },
   stats: {
     revenue: "Total revenue",
@@ -124,6 +124,9 @@ export const dashboardCopy = {
   feedback: {
     signOutSuccess: "Your session has been closed.",
     signOutError: "Unable to sign out right now.",
+  },
+  errors: {
+    loadStats: "Unable to load dashboard stats.",
   },
 } as const;
 
@@ -206,14 +209,40 @@ export const linkCopy = {
     table: {
       title: "Title",
       amount: "Amount",
+      views: "Views",
+      payments: "Payments",
+      conversion: "Conversion",
       slug: "Slug",
       status: "Status",
       createdAt: "Created",
+      actions: "Actions",
     },
     status: {
       active: "Active",
       inactive: "Inactive",
     },
+  },
+  actions: {
+    copy: "Copy link",
+    edit: "Edit",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    delete: "Delete",
+  },
+  filters: {
+    searchPlaceholder: "Search by title or slug",
+    statusAll: "All statuses",
+    statusActive: "Active only",
+    statusInactive: "Inactive only",
+  },
+  analytics: {
+    title: "Link analytics",
+    subtitle: "Views, payment outcomes, and recent customers for this link.",
+    viewsChartTitle: "Views over time",
+    statusChartTitle: "Payment status breakdown",
+    recentPaymentsTitle: "Recent payments",
+    noPayments: "No payments recorded yet.",
+    shareLabel: "Share URL",
   },
   share: {
     title: "Your payment link is live",
@@ -228,6 +257,9 @@ export const linkCopy = {
     generic: "Something went wrong. Please try again.",
     notFound: "Payment link not found.",
     invalidPayload: "Invalid input. Please check the form and try again.",
+    loadAnalytics: "Unable to load analytics for this link.",
+    deleteBlockedByPayments:
+      "This link has payment history. Deactivate it instead of deleting.",
   },
 } as const;
 

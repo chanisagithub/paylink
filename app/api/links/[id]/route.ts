@@ -4,10 +4,80 @@ import { ZodError } from "zod";
 import { linkCopy } from "@/lib/constants/copy";
 import { getStripeServerClient } from "@/lib/stripe/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { calculateConversionRate } from "@/lib/utils/analytics";
 import {
   linkIdParamSchema,
   updateLinkInputSchema,
 } from "@/lib/validations/link.schema";
+
+export async function GET(
+  _request: NextRequest,
+  context: { params: { id: string } },
+) {
+  const supabase = createServerSupabaseClient();
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ message: linkCopy.errors.unauthorized }, { status: 401 });
+    }
+
+    const { id } = linkIdParamSchema.parse(context.params);
+
+    const { data: link, error: linkError } = await supabase
+      .from("payment_links")
+      .select("id,slug,title,description,amount,currency,is_active,created_at,expires_at")
+      .eq("id", id)
+      .eq("merchant_id", user.id)
+      .maybeSingle();
+
+    if (linkError) {
+      return NextResponse.json({ message: linkError.message }, { status: 500 });
+    }
+
+    if (!link) {
+      return NextResponse.json({ message: linkCopy.errors.notFound }, { status: 404 });
+    }
+
+    const [{ data: views, error: viewsError }, { data: payments, error: paymentsError }] =
+      await Promise.all([
+        supabase.from("link_views").select("id").eq("link_id", id),
+        supabase.from("payments").select("status").eq("link_id", id),
+      ]);
+
+    if (viewsError) {
+      return NextResponse.json({ message: viewsError.message }, { status: 500 });
+    }
+
+    if (paymentsError) {
+      return NextResponse.json({ message: paymentsError.message }, { status: 500 });
+    }
+
+    const viewsCount = views.length;
+    const paymentsCount = payments.filter((payment) => payment.status === "completed").length;
+    const conversionRate = calculateConversionRate(viewsCount, paymentsCount);
+
+    return NextResponse.json({
+      link: {
+        ...link,
+        views_count: viewsCount,
+        payments_count: paymentsCount,
+        conversion_rate: conversionRate,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ message: linkCopy.errors.invalidPayload }, { status: 400 });
+    }
+
+    const message = error instanceof Error ? error.message : linkCopy.errors.generic;
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -131,6 +201,24 @@ export async function DELETE(
     }
 
     const { id } = linkIdParamSchema.parse(context.params);
+
+    const { data: relatedPayment, error: paymentCheckError } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("link_id", id)
+      .limit(1)
+      .maybeSingle();
+
+    if (paymentCheckError) {
+      return NextResponse.json({ message: paymentCheckError.message }, { status: 500 });
+    }
+
+    if (relatedPayment) {
+      return NextResponse.json(
+        { message: linkCopy.errors.deleteBlockedByPayments },
+        { status: 409 },
+      );
+    }
 
     const { error } = await supabase
       .from("payment_links")

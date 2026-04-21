@@ -13,5 +13,8 @@ export const trackViewInputSchema = z.object({
   linkId: z.string().uuid("Invalid link identifier."),
 });
 
-export type CheckoutInput = z.infer<typeof checkoutInputSchema>;
+export const confirmPaymentInputSchema = z.object({
+  sessionId: z.string().trim().min(1, "Session identifier is required."),
+});
 
+export type CheckoutInput = z.infer<typeof checkoutInputSchema>;

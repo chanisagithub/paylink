@@ -20,6 +20,9 @@ type PaymentLinkListItem = {
   is_active: boolean;
   created_at: string;
   expires_at: string | null;
+  views_count?: number;
+  payments_count?: number;
+  conversion_rate?: number;
 };
 
 type LinksResponse = {
@@ -109,6 +112,45 @@ export function usePaymentLinks() {
     },
   });
 
+  const toggleLinkActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      return request<{ link: PaymentLinkListItem }>(`/api/links/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive }),
+      });
+    },
+    onMutate: async ({ id, isActive }) => {
+      await queryClient.cancelQueries({ queryKey: ["payment-links"] });
+      const previous = queryClient.getQueryData<LinksResponse>(["payment-links"]);
+
+      queryClient.setQueryData<LinksResponse>(["payment-links"], (current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          links: current.links.map((link) =>
+            link.id === id ? { ...link, is_active: isActive } : link,
+          ),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["payment-links"], context.previous);
+      }
+      toast.error(error.message);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["payment-links"] });
+    },
+  });
+
   return {
     links: linksQuery.data?.links ?? [],
     isLoading: linksQuery.isLoading,
@@ -116,6 +158,7 @@ export function usePaymentLinks() {
     createLink: createLinkMutation,
     updateLink: updateLinkMutation,
     deleteLink: deleteLinkMutation,
+    toggleLinkActive: toggleLinkActiveMutation,
   };
 }
 

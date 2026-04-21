@@ -1,10 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
+import { MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -14,13 +31,45 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useClipboard } from "@/hooks/useClipboard";
 import { usePaymentLinks } from "@/hooks/usePaymentLinks";
 import { linkCopy } from "@/lib/constants/copy";
+import { toFixedPercent } from "@/lib/utils/analytics";
+import { formatCurrency } from "@/lib/utils/format";
 
 export function LinksPageContent() {
   // Client component on purpose: list state is fetched and refreshed with
   // React Query, and row interactions will be progressively enhanced.
-  const { links, isLoading } = usePaymentLinks();
+  const { copy } = useClipboard();
+  const { links, isLoading, deleteLink, toggleLinkActive } = usePaymentLinks();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+
+  const filteredLinks = useMemo(() => {
+    const searchNormalized = search.trim().toLowerCase();
+    return links.filter((link) => {
+      const matchesSearch =
+        searchNormalized.length === 0 ||
+        link.title.toLowerCase().includes(searchNormalized) ||
+        link.slug.toLowerCase().includes(searchNormalized);
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && link.is_active) ||
+        (statusFilter === "inactive" && !link.is_active);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [links, search, statusFilter]);
+
+  const handleCopy = async (slug: string) => {
+    try {
+      const appUrl = window.location.origin;
+      await copy(`${appUrl}/pay/${slug}`);
+      toast.success(linkCopy.form.feedback.copySuccess);
+    } catch {
+      toast.error(linkCopy.form.feedback.copyError);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -39,6 +88,26 @@ export function LinksPageContent() {
         <Button asChild>
           <Link href="/links/new">{linkCopy.overview.createAction}</Link>
         </Button>
+      </div>
+      <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+        <Input
+          placeholder={linkCopy.filters.searchPlaceholder}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <Select
+          value={statusFilter}
+          onValueChange={(value: "all" | "active" | "inactive") => setStatusFilter(value)}
+        >
+          <SelectTrigger className="h-11 rounded-2xl border-white/10 bg-white/5 text-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="border-white/10 bg-[#141414] text-white">
+            <SelectItem value="all">{linkCopy.filters.statusAll}</SelectItem>
+            <SelectItem value="active">{linkCopy.filters.statusActive}</SelectItem>
+            <SelectItem value="inactive">{linkCopy.filters.statusInactive}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card className="border-white/10 bg-[#1a1a1a] text-white">
@@ -60,20 +129,33 @@ export function LinksPageContent() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="px-5 py-3">{linkCopy.list.table.title}</TableHead>
                   <TableHead className="px-5 py-3">{linkCopy.list.table.amount}</TableHead>
+                  <TableHead className="px-5 py-3">{linkCopy.list.table.views}</TableHead>
+                  <TableHead className="px-5 py-3">{linkCopy.list.table.payments}</TableHead>
+                  <TableHead className="px-5 py-3">{linkCopy.list.table.conversion}</TableHead>
                   <TableHead className="px-5 py-3">{linkCopy.list.table.slug}</TableHead>
                   <TableHead className="px-5 py-3">{linkCopy.list.table.status}</TableHead>
                   <TableHead className="px-5 py-3">{linkCopy.list.table.createdAt}</TableHead>
+                  <TableHead className="px-5 py-3 text-right">{linkCopy.list.table.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {links.map((link) => (
-                  <TableRow key={link.id} className="border-white/5 hover:bg-white/5">
+                {filteredLinks.length === 0 ? (
+                  <TableRow className="border-white/5">
+                    <TableCell colSpan={9} className="py-8 text-center text-zinc-400">
+                      {linkCopy.list.emptyDescription}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredLinks.map((link) => (
+                    <TableRow key={link.id} className="border-white/5 hover:bg-white/5">
                     <TableCell className="px-5 py-4">{link.title}</TableCell>
                     <TableCell className="px-5 py-4">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: link.currency,
-                        }).format(link.amount)}
+                      {formatCurrency(link.amount, link.currency)}
+                    </TableCell>
+                    <TableCell className="px-5 py-4">{link.views_count ?? 0}</TableCell>
+                    <TableCell className="px-5 py-4">{link.payments_count ?? 0}</TableCell>
+                    <TableCell className="px-5 py-4">
+                      {toFixedPercent(link.conversion_rate ?? 0)}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-zinc-300">/pay/{link.slug}</TableCell>
                     <TableCell className="px-5 py-4">
@@ -93,8 +175,47 @@ export function LinksPageContent() {
                     <TableCell className="px-5 py-4 text-zinc-400">
                       {new Date(link.created_at).toLocaleDateString()}
                     </TableCell>
-                  </TableRow>
-                ))}
+                    <TableCell className="px-5 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="border-white/10 bg-[#141414] text-white"
+                        >
+                          <DropdownMenuItem onClick={() => void handleCopy(link.slug)}>
+                            {linkCopy.actions.copy}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/links/${link.id}`}>{linkCopy.actions.edit}</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              toggleLinkActive.mutate({
+                                id: link.id,
+                                isActive: !link.is_active,
+                              })
+                            }
+                          >
+                            {link.is_active
+                              ? linkCopy.actions.deactivate
+                              : linkCopy.actions.activate}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-rose-300 focus:text-rose-200"
+                            onClick={() => deleteLink.mutate(link.id)}
+                          >
+                            {linkCopy.actions.delete}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           )}

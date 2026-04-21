@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import { linkCopy } from "@/lib/constants/copy";
 import { getStripeServerClient } from "@/lib/stripe/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { calculateConversionRate } from "@/lib/utils/analytics";
 import {
   linkInputSchema,
   linkSlugAvailabilitySchema,
@@ -65,7 +66,62 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ links: data });
+    const linkIds = data.map((link) => link.id);
+
+    if (linkIds.length === 0) {
+      return NextResponse.json({ links: [] });
+    }
+
+    const [{ data: views, error: viewsError }, { data: payments, error: paymentsError }] =
+      await Promise.all([
+        supabase
+          .from("link_views")
+          .select("link_id")
+          .in("link_id", linkIds),
+        supabase
+          .from("payments")
+          .select("link_id,status")
+          .in("link_id", linkIds),
+      ]);
+
+    if (viewsError) {
+      return NextResponse.json({ message: viewsError.message }, { status: 500 });
+    }
+
+    if (paymentsError) {
+      return NextResponse.json({ message: paymentsError.message }, { status: 500 });
+    }
+
+    const viewsByLink = new Map<string, number>();
+    const completedPaymentsByLink = new Map<string, number>();
+
+    for (const view of views) {
+      viewsByLink.set(view.link_id, (viewsByLink.get(view.link_id) ?? 0) + 1);
+    }
+
+    for (const payment of payments) {
+      if (payment.status === "completed") {
+        completedPaymentsByLink.set(
+          payment.link_id,
+          (completedPaymentsByLink.get(payment.link_id) ?? 0) + 1,
+        );
+      }
+    }
+
+    const links = data.map((link) => {
+      const viewsCount = viewsByLink.get(link.id) ?? 0;
+      const paymentsCount = completedPaymentsByLink.get(link.id) ?? 0;
+      const conversionRate = calculateConversionRate(viewsCount, paymentsCount);
+
+      return {
+        ...link,
+        views_count: viewsCount,
+        payments_count: paymentsCount,
+        conversion_rate: conversionRate,
+      };
+    });
+
+    return NextResponse.json({ links });
   } catch (error) {
     const message = error instanceof Error ? error.message : linkCopy.errors.generic;
     return NextResponse.json({ message }, { status: 500 });

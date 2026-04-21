@@ -1,19 +1,23 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
+import { ConfirmPaymentSync } from "@/components/payment/confirm-payment-sync";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { payCopy } from "@/lib/constants/copy";
 
 export default function PaySuccessPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { session_id?: string };
 }) {
-  // Server component on purpose: this success state is static content driven by
-  // route params and does not require client-side interactivity.
+  // Server component on purpose: success UI is route-driven and static, while
+  // a tiny client child handles non-blocking payment sync recovery.
   return (
     <main className="min-h-screen bg-[#f8fafc] px-4 py-12 text-slate-900">
+      <ConfirmPaymentSync sessionId={searchParams.session_id} />
       <div className="mx-auto w-full max-w-2xl">
         <Card className="border-slate-200 bg-white text-center shadow-sm">
           <CardHeader className="items-center">
@@ -38,4 +42,3 @@ export default function PaySuccessPage({
     </main>
   );
 }
-
