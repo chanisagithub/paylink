@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PayLink
 
-## Getting Started
+PayLink is a full-stack Next.js app for creating branded payment links, sharing them with customers, and collecting payments through Stripe Checkout.
 
-First, run the development server:
+## Tech stack
+
+- Next.js (App Router) + React + TypeScript
+- Supabase (Auth, Postgres, RLS)
+- Stripe (price creation + hosted checkout)
+- Tailwind CSS + shadcn/ui + React Query
+
+## Core features
+
+- Merchant signup/login with Supabase SSR sessions
+- Protected dashboard routes (`/dashboard`, `/links`)
+- Create, list, edit, and delete payment links
+- Public payment pages at `/pay/[slug]`
+- Stripe Checkout session creation
+- Link view tracking and basic analytics tables
+
+## Architecture overview
+
+This repository is a **single full-stack app** (no separate backend repo):
+
+- **Frontend**
+  - `app/` page UIs (`(auth)`, `(dashboard)`, `pay/[slug]`)
+  - `components/`, `contexts/`, `hooks/`, `public/`
+- **Backend (within Next.js)**
+  - `app/api/**` route handlers (server APIs)
+  - `middleware.ts` + `lib/supabase/middleware.ts` (auth/session redirects)
+  - `lib/supabase/server.ts` and `lib/supabase/admin.ts` (server/admin DB access)
+  - `lib/stripe/client.ts` (Stripe server SDK)
+- **Database layer**
+  - `supabase/migrations/` (schema, RLS policies, triggers)
+  - `types/database.ts` (generated/maintained DB typing)
+
+## Environment variables
+
+Create a `.env.local` file:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+VIEW_HASH_SALT=optional_custom_salt
+```
+
+## Local development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev    # start dev server
+npm run build  # production build
+npm run start  # run production build
+npm run lint   # lint codebase
+```
 
-## Learn More
+## API routes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GET /api/links` - list merchant links
+- `GET /api/links?slug=...` - check slug availability
+- `POST /api/links` - create a payment link
+- `PATCH /api/links/:id` - update a link
+- `DELETE /api/links/:id` - delete a link
+- `POST /api/pay/checkout` - create Stripe Checkout session
+- `POST /api/pay/view` - track public page views
