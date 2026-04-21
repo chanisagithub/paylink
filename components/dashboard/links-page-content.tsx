@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +41,7 @@ export function LinksPageContent() {
   // Client component on purpose: list state is fetched and refreshed with
   // React Query, and row interactions will be progressively enhanced.
   const { copy } = useClipboard();
-  const { links, isLoading, deleteLink, toggleLinkActive } = usePaymentLinks();
+  const { links, isLoading, isError, error, deleteLink, toggleLinkActive } = usePaymentLinks();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
@@ -60,6 +60,13 @@ export function LinksPageContent() {
       return matchesSearch && matchesStatus;
     });
   }, [links, search, statusFilter]);
+
+  useEffect(() => {
+    if (isError) {
+      const message = error instanceof Error ? error.message : linkCopy.errors.generic;
+      toast.error(message);
+    }
+  }, [error, isError]);
 
   const handleCopy = async (slug: string) => {
     try {

@@ -155,6 +155,8 @@ export function usePaymentLinks() {
     links: linksQuery.data?.links ?? [],
     isLoading: linksQuery.isLoading,
     isFetching: linksQuery.isFetching,
+    isError: linksQuery.isError,
+    error: linksQuery.error,
     createLink: createLinkMutation,
     updateLink: updateLinkMutation,
     deleteLink: deleteLinkMutation,

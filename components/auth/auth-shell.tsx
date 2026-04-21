@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Card, CardContent } from "@/components/ui/card";
 import { authCopy } from "@/lib/constants/copy";
 
@@ -28,6 +29,7 @@ export function AuthShell({
       <div className="relative mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:px-10">
         <div className="flex flex-col justify-between rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
           <div>
+            <BrandLogo className="w-40" />
             <p className="text-xs uppercase tracking-[0.3em] text-white/45">
               {authCopy.brandLabel}
             </p>

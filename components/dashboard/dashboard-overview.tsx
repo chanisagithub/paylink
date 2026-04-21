@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { animate, motion, useMotionValue, useTransform } from "framer-motion";
+import { useEffect, useMemo } from "react";
+import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,14 +11,28 @@ import { dashboardCopy } from "@/lib/constants/copy";
 import { toFixedPercent } from "@/lib/utils/analytics";
 import { formatCurrency } from "@/lib/utils/format";
 
-function CountUpValue({ value }: { value: string }) {
+function CountUpValue({
+  value,
+  formatter,
+}: {
+  value: number;
+  formatter: (value: number) => string;
+}) {
+  const motionValue = useMotionValue(0);
+  const rounded = useTransform(motionValue, (latest) => formatter(latest));
+
+  useEffect(() => {
+    const controls = animate(motionValue, value, { duration: 0.8, ease: "easeOut" });
+    return () => controls.stop();
+  }, [motionValue, value]);
+
   return (
     <motion.span
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {value}
+      {rounded}
     </motion.span>
   );
 }
@@ -26,6 +41,15 @@ export function DashboardOverview() {
   // Client component on purpose: stats are fetched with React Query and animated
   // on the client as live values change from new payment and view events.
   const statsQuery = useDashboardStats();
+  useEffect(() => {
+    if (statsQuery.error) {
+      const message =
+        statsQuery.error instanceof Error
+          ? statsQuery.error.message
+          : dashboardCopy.errors.loadStats;
+      toast.error(message);
+    }
+  }, [statsQuery.error]);
 
   const stats = useMemo(() => {
     if (!statsQuery.data) {
@@ -35,19 +59,23 @@ export function DashboardOverview() {
     return [
       {
         label: dashboardCopy.stats.revenue,
-        value: formatCurrency(statsQuery.data.totalRevenue, "USD"),
+        value: statsQuery.data.totalRevenue,
+        formatter: (value: number) => formatCurrency(value, "USD"),
       },
       {
         label: dashboardCopy.stats.links,
-        value: String(statsQuery.data.totalLinks),
+        value: statsQuery.data.totalLinks,
+        formatter: (value: number) => Math.round(value).toString(),
       },
       {
         label: dashboardCopy.stats.views,
-        value: String(statsQuery.data.totalViews),
+        value: statsQuery.data.totalViews,
+        formatter: (value: number) => Math.round(value).toString(),
       },
       {
         label: dashboardCopy.stats.conversion,
-        value: toFixedPercent(statsQuery.data.averageConversion),
+        value: statsQuery.data.averageConversion,
+        formatter: (value: number) => toFixedPercent(value),
       },
     ];
   }, [statsQuery.data]);
@@ -93,7 +121,7 @@ export function DashboardOverview() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-semibold tracking-tight">
-                      <CountUpValue value={stat.value} />
+                      <CountUpValue value={stat.value} formatter={stat.formatter} />
                     </div>
                   </CardContent>
                 </Card>
@@ -112,4 +140,3 @@ export function DashboardOverview() {
     </div>
   );
 }
-

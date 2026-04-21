@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { marketingCopy } from "@/lib/constants/copy";
 
@@ -10,12 +11,10 @@ export default function HomePage() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10 sm:px-10">
         <header className="flex items-center justify-between">
           <div>
+            <BrandLogo priority className="w-40" />
             <p className="text-xs uppercase tracking-[0.3em] text-white/45">
               {marketingCopy.brand.eyebrow}
             </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {marketingCopy.brand.name}
-            </h1>
           </div>
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost">

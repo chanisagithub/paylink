@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
 import { ViewsLineChart, StatusPieChart } from "@/components/dashboard/conversion-chart";
 import { RecentPayments } from "@/components/dashboard/recent-payments";
+import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,15 @@ export function LinkAnalyticsPage({ linkId }: { linkId: string }) {
   // React Query to keep charts and recent payments live without full reloads.
   const { copy } = useClipboard();
   const analytics = useAnalytics(linkId);
+  useEffect(() => {
+    if (analytics.error) {
+      const message =
+        analytics.error instanceof Error
+          ? analytics.error.message
+          : linkCopy.errors.loadAnalytics;
+      toast.error(message);
+    }
+  }, [analytics.error]);
 
   const shareUrl = useMemo(() => {
     if (!analytics.data) {
@@ -94,26 +104,30 @@ export function LinkAnalyticsPage({ linkId }: { linkId: string }) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-white/10 bg-[#1a1a1a] text-white">
-          <CardHeader>
-            <CardTitle>{linkCopy.analytics.viewsChartTitle}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ViewsLineChart data={analytics.data.viewsOverTime} />
-          </CardContent>
-        </Card>
-        <Card className="border-white/10 bg-[#1a1a1a] text-white">
-          <CardHeader>
-            <CardTitle>{linkCopy.analytics.statusChartTitle}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StatusPieChart data={analytics.data.statusBreakdown} />
-          </CardContent>
-        </Card>
-      </div>
+      <ErrorBoundary title="Views chart failed">
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card className="border-white/10 bg-[#1a1a1a] text-white">
+            <CardHeader>
+              <CardTitle>{linkCopy.analytics.viewsChartTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ViewsLineChart data={analytics.data.viewsOverTime} />
+            </CardContent>
+          </Card>
+          <Card className="border-white/10 bg-[#1a1a1a] text-white">
+            <CardHeader>
+              <CardTitle>{linkCopy.analytics.statusChartTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StatusPieChart data={analytics.data.statusBreakdown} />
+            </CardContent>
+          </Card>
+        </div>
+      </ErrorBoundary>
 
-      <RecentPayments payments={analytics.data.recentPayments} />
+      <ErrorBoundary title="Recent payments section failed">
+        <RecentPayments payments={analytics.data.recentPayments} />
+      </ErrorBoundary>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
 
 import { ConfirmPaymentSync } from "@/components/payment/confirm-payment-sync";
+import { SuccessCelebrationIcon } from "@/components/payment/success-celebration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { payCopy } from "@/lib/constants/copy";
@@ -21,9 +21,7 @@ export default function PaySuccessPage({
       <div className="mx-auto w-full max-w-2xl">
         <Card className="border-slate-200 bg-white text-center shadow-sm">
           <CardHeader className="items-center">
-            <div className="rounded-full bg-emerald-500/10 p-3 text-emerald-600">
-              <CheckCircle2 className="h-8 w-8" />
-            </div>
+            <SuccessCelebrationIcon />
             <CardTitle className="pt-3 font-heading text-3xl">{payCopy.success.title}</CardTitle>
             <CardDescription className="max-w-xl text-slate-600">
               {payCopy.success.description}
