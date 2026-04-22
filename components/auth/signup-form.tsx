@@ -35,10 +35,12 @@ export function SignupForm() {
 
     startTransition(async () => {
       const supabase = createBrowserSupabaseClient();
+      const emailRedirectTo = `${window.location.origin}/auth/callback?next=/dashboard`;
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
+          emailRedirectTo,
           data: {
             business_name: values.businessName,
           },
