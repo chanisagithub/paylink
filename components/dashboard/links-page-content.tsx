@@ -197,7 +197,10 @@ export function LinksPageContent() {
                             {linkCopy.actions.copy}
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/links/${link.id}`}>{linkCopy.actions.edit}</Link>
+                            <Link href={`/links/${link.id}`}>{linkCopy.actions.analytics}</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/links/${link.id}/edit`}>{linkCopy.actions.edit}</Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>

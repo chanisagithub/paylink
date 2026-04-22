@@ -22,8 +22,8 @@ export const marketingCopy = {
   actions: {
     login: "Log In",
     signup: "Create Account",
-    getStarted: "Start Building",
-    previewDashboard: "Preview Dashboard",
+    getStarted: "Get Started",
+    previewDashboard: "Go to Dashboard",
   },
 } as const;
 
@@ -182,12 +182,15 @@ export const linkCopy = {
       backToLinks: "Back to links",
       create: "Create payment link",
       creating: "Creating payment link...",
+      save: "Save changes",
+      saving: "Saving changes...",
     },
     feedback: {
       slugChecking: "Checking slug availability...",
       slugAvailable: "Slug is available.",
       slugUnavailable: "Slug is taken. Pick another slug.",
       createSuccess: "Payment link created successfully.",
+      updateSuccess: "Payment link updated successfully.",
       copySuccess: "Link copied to clipboard.",
       copyError: "Unable to copy right now.",
     },
@@ -225,6 +228,7 @@ export const linkCopy = {
   actions: {
     copy: "Copy link",
     edit: "Edit",
+    analytics: "View analytics",
     activate: "Activate",
     deactivate: "Deactivate",
     delete: "Delete",
@@ -281,6 +285,7 @@ export const payCopy = {
     missingDescription:
       "This link may have been removed or the URL is incorrect.",
     createAccountCta: "Create your own PayLink account",
+    poweredBy: "Powered by PayLink",
     secureRedirectDescription:
       "You will be redirected to Stripe Checkout to complete payment securely.",
   },

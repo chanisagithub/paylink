@@ -16,8 +16,15 @@ const headingFont = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "PayLink",
-  description: "Merchant payment links with analytics, checkout, and Supabase auth.",
+  title: {
+    default: "PayLink",
+    template: "%s | PayLink",
+  },
+  description: "Branded payment links with conversion analytics and secure Stripe checkout.",
+  icons: {
+    icon: "/paylink-logo.png",
+    apple: "/paylink-logo.png",
+  },
 };
 
 export default function RootLayout({

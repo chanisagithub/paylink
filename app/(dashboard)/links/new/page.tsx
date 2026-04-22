@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PaymentForm } from "@/components/payment/PaymentForm";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { linkCopy } from "@/lib/constants/copy";
 
@@ -11,6 +12,7 @@ export default function NewPaymentLinkPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
+          <BrandLogo className="w-32" />
           <p className="text-sm uppercase tracking-[0.3em] text-white/40">
             {linkCopy.overview.eyebrow}
           </p>

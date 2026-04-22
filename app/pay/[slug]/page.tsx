@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { PayActions } from "@/components/payment/pay-actions";
 import { TrackView } from "@/components/payment/track-view";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { payCopy } from "@/lib/constants/copy";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -76,6 +77,7 @@ export default async function PaySlugPage({
       <TrackView linkId={link.id} />
       <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <BrandLogo className="w-36" />
           <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
             {payCopy.page.eyebrow}
           </p>
@@ -121,6 +123,7 @@ export default async function PaySlugPage({
 
         <Card className="h-fit border-slate-200 bg-white shadow-sm">
           <CardHeader>
+            <BrandLogo className="w-28" />
             <div className="h-2 rounded-full" style={{ backgroundColor: brandColor }} />
             <CardTitle className="mt-4 font-heading text-2xl">{payCopy.page.payNow}</CardTitle>
             <CardDescription className="text-slate-600">
