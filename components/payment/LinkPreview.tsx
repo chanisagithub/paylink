@@ -44,7 +44,13 @@ export function LinkPreview({ values }: LinkPreviewProps) {
           </p>
           {values.expiresAt ? (
             <p>
-              {linkCopy.preview.expiresLabel}: {values.expiresAt}
+              {linkCopy.preview.expiresLabel}:{" "}
+              {(() => {
+                const parsed = new Date(values.expiresAt);
+                return Number.isNaN(parsed.getTime())
+                  ? values.expiresAt
+                  : parsed.toLocaleString();
+              })()}
             </p>
           ) : null}
         </div>

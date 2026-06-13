@@ -224,6 +224,14 @@ export const linkCopy = {
       active: "Active",
       inactive: "Inactive",
     },
+    deleteConfirm: {
+      title: "Delete this payment link?",
+      description:
+        "This permanently removes the link and its slug. Links with payment history can't be deleted — deactivate them instead.",
+      confirm: "Delete link",
+      deleting: "Deleting...",
+      cancel: "Cancel",
+    },
   },
   actions: {
     copy: "Copy link",
@@ -286,6 +294,10 @@ export const payCopy = {
       "This link may have been removed or the URL is incorrect.",
     createAccountCta: "Create your own PayLink account",
     poweredBy: "Powered by PayLink",
+    securedByStripe: "Secured by Stripe",
+    encryptedNote: "Payments are encrypted and processed securely by Stripe.",
+    summaryLabel: "Order summary",
+    totalLabel: "Total due",
     secureRedirectDescription:
       "You will be redirected to Stripe Checkout to complete payment securely.",
   },

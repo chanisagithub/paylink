@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,6 +52,17 @@ export function LinksPageContent() {
   const { links, isLoading, isError, error, deleteLink, toggleLinkActive } = usePaymentLinks();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [linkToDelete, setLinkToDelete] = useState<{ id: string; title: string } | null>(null);
+
+  const confirmDelete = () => {
+    if (!linkToDelete) {
+      return;
+    }
+
+    deleteLink.mutate(linkToDelete.id, {
+      onSuccess: () => setLinkToDelete(null),
+    });
+  };
 
   const filteredLinks = useMemo(() => {
     const searchNormalized = search.trim().toLowerCase();
@@ -216,7 +235,9 @@ export function LinksPageContent() {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-rose-300 focus:text-rose-200"
-                            onClick={() => deleteLink.mutate(link.id)}
+                            onSelect={() =>
+                              setLinkToDelete({ id: link.id, title: link.title })
+                            }
                           >
                             {linkCopy.actions.delete}
                           </DropdownMenuItem>
@@ -231,6 +252,48 @@ export function LinksPageContent() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={Boolean(linkToDelete)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLinkToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="border-white/10 bg-[#141414] text-white">
+          <DialogHeader>
+            <DialogTitle>{linkCopy.list.deleteConfirm.title}</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              {linkCopy.list.deleteConfirm.description}
+            </DialogDescription>
+          </DialogHeader>
+          {linkToDelete ? (
+            <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-200">
+              {linkToDelete.title}
+            </p>
+          ) : null}
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setLinkToDelete(null)}
+            >
+              {linkCopy.list.deleteConfirm.cancel}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteLink.isPending}
+              onClick={confirmDelete}
+            >
+              {deleteLink.isPending
+                ? linkCopy.list.deleteConfirm.deleting
+                : linkCopy.list.deleteConfirm.confirm}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

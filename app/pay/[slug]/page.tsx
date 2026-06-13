@@ -121,20 +121,41 @@ export default async function PaySlugPage({
           </div>
         </div>
 
-        <Card className="h-fit border-slate-200 bg-white shadow-sm">
+        <Card className="h-fit overflow-hidden border-slate-200 bg-white shadow-sm">
+          <div className="h-1.5 w-full" style={{ backgroundColor: brandColor }} />
           <CardHeader>
-            <BrandLogo className="w-28" />
-            <div className="h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-            <CardTitle className="mt-4 font-heading text-2xl">{payCopy.page.payNow}</CardTitle>
+            <CardTitle className="font-heading text-2xl">{payCopy.page.payNow}</CardTitle>
             <CardDescription className="text-slate-600">
               {payCopy.page.secureRedirectDescription}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                {payCopy.page.summaryLabel}
+              </p>
+              <div className="mt-3 flex items-start justify-between gap-4 text-sm">
+                <span className="text-slate-600">{link.title}</span>
+                <span className="font-medium text-slate-900">{amountLabel}</span>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+                <span className="text-sm font-medium text-slate-700">
+                  {payCopy.page.totalLabel}
+                </span>
+                <span className="font-heading text-xl font-semibold text-slate-900">
+                  {amountLabel}
+                </span>
+              </div>
+            </div>
             <PayActions slug={link.slug} />
           </CardContent>
         </Card>
       </div>
+
+      <footer className="mx-auto mt-10 flex max-w-5xl flex-col items-center gap-2 text-center">
+        <p className="text-xs text-slate-400">{payCopy.page.encryptedNote}</p>
+        <p className="text-xs font-medium text-slate-500">{payCopy.page.poweredBy}</p>
+      </footer>
     </main>
   );
 }

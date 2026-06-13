@@ -32,9 +32,9 @@ export default function HomePage() {
               <p className="text-sm font-medium uppercase tracking-[0.32em] text-indigo-300">
                 {marketingCopy.hero.kicker}
               </p>
-              <h2 className="mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
+              <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
                 {marketingCopy.hero.title}
-              </h2>
+              </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
                 {marketingCopy.hero.description}
               </p>
